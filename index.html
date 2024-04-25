@@ -5,33 +5,39 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Indice</title>
     <style>
-            body {
+        body {
             font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
+            background-color: #ffefdb; /* Cambio de color a un fondo más cálido */
             margin: 0;
             padding: 0;
         }
 
         .container {
-            max-width: 600px;
-            margin: 0 auto;
+            max-width: 800px; /* Aumenté el ancho para que los enlaces puedan acomodarse mejor */
+            margin: 20px auto; /* Margen superior e inferior aumentado */
             padding: 20px;
             text-align: center;
         }
 
         h1 {
             color: #333;
-            font-size: 28px;
+            font-size: 32px; /* Tamaño de fuente aumentado */
             margin-bottom: 20px;
+            transition: color 0.3s ease; /* Transición de color al pasar el cursor */
+            cursor: pointer; /* Cambio de cursor a mano */
+        }
+
+        h1:hover {
+            color: #ff7f50; /* Cambio de color al pasar el cursor */
         }
 
         a {
-            display: block;
+            display: inline-block; /* Enlaces en línea */
             background-color: #007bff;
             color: #fff;
             text-decoration: none;
             padding: 10px 20px;
-            margin: 10px auto;
+            margin: 10px; /* Espaciado entre enlaces */
             border-radius: 5px;
             transition: background-color 0.3s ease;
         }
