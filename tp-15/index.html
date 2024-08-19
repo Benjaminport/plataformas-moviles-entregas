@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokémon Fiesta</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .btn-type {
+            margin: 5px;
+        }
+        .pokemon-list {
+            display: none;
+        }
+        .pokemon-list.active {
+            display: block;
+        }
+        .card-body {
+            position: relative;
+        }
+        .card-body img {
+            max-width: 100%;
+        }
+        .title-img {
+            max-width: 200px;
+            margin-bottom: 20px;
+        }
+        .title-container {
+            text-align: center;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container">
+        <div class="title-container my-5">
+            <img src="pokemon-logo-pokemon-icon-transparent-free-png.webp" alt="Pokémon Fiesta" class="title-img">
+        </div>
+        <div id="pokemon-buttons" class="mb-4 d-flex flex-wrap justify-content-center"></div>
+        <div id="pokemon-list" class="row"></div>
+    </div>
+
+    <script>
+        const typeNames = {
+            fire: 'Fuego',
+            water: 'Agua',
+            grass: 'Planta',
+            electric: 'Eléctrico',
+            ground: 'Tierra',
+            rock: 'Roca',
+            fairy: 'Hada',
+            poison: 'Veneno',
+            bug: 'Bicho',
+            dragon: 'Dragón',
+            psychic: 'Psíquico',
+            flying: 'Volador',
+            fighting: 'Lucha',
+            normal: 'Normal',
+            ghost: 'Fantasma',
+            dark: 'Siniestro',
+            steel: 'Acero',
+            ice: 'Hielo'
+        };
+
+        const typeColors = {
+            fire: '#FF5733',
+            water: '#339FFF',
+            grass: '#4CAF50',
+            electric: '#FFEB3B',
+            ground: '#A0522D',
+            rock: '#A9A9A9',
+            fairy: '#FFC0CB',
+            poison: '#9B59B6',
+            bug: '#8BC34A',
+            dragon: '#673AB7',
+            psychic: '#E91E63',
+            flying: '#87CEEB',
+            fighting: '#C62828',
+            normal: '#A8A878',
+            ghost: '#705898',
+            dark: '#5C5C5C',
+            steel: '#B8B8D0',
+            ice: '#ADD8E6'
+        };
+
+        async function obtenerPrimeros151Pokemon() {
+            let pokemonButtons = document.getElementById('pokemon-buttons');
+            let pokemonList = document.getElementById('pokemon-list');
+            let pokemonByType = {};
+
+            try {
+                let respuesta = await fetch("https://pokeapi.co/api/v2/pokemon?limit=151");
+                if (!respuesta.ok) throw new Error('Error en la solicitud');
+                
+                let datos = await respuesta.json();
+                
+                for (let i = 0; i < datos.results.length; i++) {
+                    let detalleRespuesta = await fetch(datos.results[i].url);
+                    let detallePokemon = await detalleRespuesta.json();
+
+                    let tipoPrincipal = detallePokemon.types[0].type.name;
+                    let color = typeColors[tipoPrincipal] || '#333';
+
+                    if (!pokemonByType[tipoPrincipal]) {
+                        pokemonByType[tipoPrincipal] = [];
+                    }
+
+                    pokemonByType[tipoPrincipal].push({
+                        name: detallePokemon.name,
+                        color: color,
+                        sprite: detallePokemon.sprites.front_default,
+                        types: detallePokemon.types.map(type => type.type.name).map(type => typeNames[type] || type).join(', '),
+                        habilidad: detallePokemon.abilities[0].ability.name,
+                        movimientos: detallePokemon.moves.slice(0, 4).map(move => move.move.name).join(', ')
+                    });
+                }
+
+                // Crear botones para cada tipo de Pokémon
+                for (let tipo in pokemonByType) {
+                    let tipoButton = document.createElement('button');
+                    tipoButton.className = 'btn btn-type text-white';
+                    tipoButton.style.backgroundColor = typeColors[tipo] || '#333';
+                    tipoButton.textContent = typeNames[tipo] || tipo;
+                    tipoButton.dataset.tipo = tipo;
+
+                    // Crear una lista desplegable para los Pokémon de este tipo
+                    let tipoSection = document.createElement('div');
+                    tipoSection.className = 'pokemon-list';
+                    tipoSection.id = `list-${tipo}`;
+
+                    let tipoCardGroup = document.createElement('div');
+                    tipoCardGroup.className = 'row';
+
+                    pokemonByType[tipo].forEach(pokemon => {
+                        let card = document.createElement('div');
+                        card.className = 'col-md-4 mb-4';
+
+                        let cardContent = `
+                            <div class="card shadow-sm">
+                                <div class="card-body">
+                                    <h5 class="card-title text-capitalize">${pokemon.name}</h5>
+                                    <button class="btn text-white" style="background-color: ${pokemon.color};">Ver Detalles</button>
+                                    <div class="pokemon-details" style="display: none;">
+                                        <img src="${pokemon.sprite}" alt="${pokemon.name}" class="img-fluid rounded mb-3">
+                                        <p><strong>Tipos:</strong> ${pokemon.types}</p>
+                                        <p><strong>Habilidad:</strong> ${pokemon.habilidad}</p>
+                                        <p><strong>Movimientos:</strong> ${pokemon.movimientos}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+
+                        card.innerHTML = cardContent;
+
+                        let detailsButton = card.querySelector('button');
+                        let detailsDiv = card.querySelector('.pokemon-details');
+
+                        detailsButton.addEventListener('click', () => {
+                            if (detailsDiv.style.display === 'none') {
+                                detailsDiv.style.display = 'block';
+                                detailsButton.textContent = 'Cerrar Detalles';
+                            } else {
+                                detailsDiv.style.display = 'none';
+                                detailsButton.textContent = 'Ver Detalles';
+                            }
+                        });
+
+                        tipoCardGroup.appendChild(card);
+                    });
+
+                    tipoSection.appendChild(tipoCardGroup);
+                    pokemonList.appendChild(tipoSection);
+
+                    // Agregar evento para mostrar/ocultar la lista de Pokémon
+                    tipoButton.addEventListener('click', () => {
+                        // Ocultar todas las listas de Pokémon
+                        let allLists = document.querySelectorAll('.pokemon-list');
+                        allLists.forEach(list => list.classList.remove('active'));
+
+                        // Mostrar la lista del tipo seleccionado
+                        let list = document.getElementById(`list-${tipo}`);
+                        list.classList.add('active');
+                    });
+
+                    pokemonButtons.appendChild(tipoButton);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        obtenerPrimeros151Pokemon();
+    </script>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
